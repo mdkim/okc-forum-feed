@@ -20,6 +20,9 @@ public class MainActivity extends Activity {
       
       TextView textView = (TextView) findViewById(R.id.textView1);
       this.textView = textView;
+      
+      // temp
+      Debug.init(this);
    }
 
    @Override
@@ -30,19 +33,20 @@ public class MainActivity extends Activity {
    }
 
    public void startMain(View view) {
-      // hit http://www.okcupid.com/forum
-      // scrape "posted WHEN" values
-      // open each section: http://www.okcupid.com/forum?sid=11
-      // scrape last-two comment times
-
-      String url = "http://www.okcupid.com/forum";
+      
+      Debug.println("startMain");
+      
       ConnectivityManager connMgr = (ConnectivityManager) 
             getSystemService(Context.CONNECTIVITY_SERVICE);
       NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
       if (networkInfo != null && networkInfo.isConnected()) {
-         new DownloadWebpageTask().execute(url);
+         new DownloadWebpageTask(this).execute();
       } else {
          this.textView.setText("No network connection available.");
       }
+   }
+
+   public TextView getTextView() {
+      return this.textView;
    }
 }

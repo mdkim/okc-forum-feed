@@ -17,12 +17,14 @@ class OkcForumFeed {
    private static final String URL_THREADS_PRE = "http://www.okcupid.com/forum?sid=";
 
    private static final Pattern PATT_SID_NAME = Pattern.compile("<a href=\\\"/forum\\?sid=([0-9]+?)\\\">([^<]+?)</a>");
-   private static final Pattern PATT_SDATE = Pattern.compile("posted <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
+   //private static final Pattern PATT_SDATE = Pattern.compile("posted <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
+   private static final Pattern PATT_SDATE = Pattern.compile("posted (.+?)</p>");
 
    private static final Pattern PATT_TID_NAME0 = Pattern.compile("<a href=\\\"/forum\\?tid=([0-9]+)\\\"[^>]*?>([^<]+)</a>");
-   private static final Pattern PATT_TID_NAME1 = Pattern.compile("(.*?)<p class=\"created_by\">.*?</span>"); // group1 => "Last page"
+   private static final Pattern PATT_TID_NAME1 = Pattern.compile("(.*?)<p class=\"created_by\">.*?</p>"); // group1 => "Last page"
    private static final Pattern PATT_TID_NAME2 = Pattern.compile("<a href=\\\"/forum\\?tid=[0-9]+?&amp;low=([0-9]+?)\\\">Last page</a>");
-   private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>, <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
+   //private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>, <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
+   private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>,\\s*(.+?)\\s*</p>");
 
    public static void main(String[] args) {
       Debug.IS_DEBUG = true;
@@ -40,7 +42,7 @@ class OkcForumFeed {
 
          Debug.println("--- PARSING SECTIONS ---");
          // okcSections
-         httpScanner = getHttpScanner(URL_SECTIONS);
+         httpScanner = getHttpScanner(URL_SECTIONS + "?enable_mobile=1");
          while (true) {
             OkcSection nextSection = findNextOkcSection(httpScanner);
             if (nextSection == null) break;
@@ -57,7 +59,7 @@ class OkcForumFeed {
                continue;
             }
             Debug.println("\n--- PARSING THREADS (sid=" + nextSection.getSid() + ") ---");
-            httpScanner = getHttpScanner(URL_THREADS_PRE + nextSection.getSid());
+            httpScanner = getHttpScanner(URL_THREADS_PRE + nextSection.getSid() + "&enable_mobile=1");
             while (true) {
                OkcThread nextThread = findNextOkcThread(httpScanner, nextSection);
                if (nextThread == null) break;
@@ -89,7 +91,7 @@ class OkcForumFeed {
    }
 
    private static OkcSection findNextOkcSection(HttpScanner httpScanner) throws OkcException {
-
+      
       Scanner scanner = httpScanner.scanner;
       OkcSection okcSection = new OkcSection(httpScanner.getConnectionDate());
       // sid, sname
@@ -158,6 +160,12 @@ class OkcForumFeed {
    }
 
    private static HttpScanner getHttpScanner(String url) throws OkcException {
+      
+      // temp
+      //HttpScanner httpScanner0 = new HttpScanner(url);
+      //httpScanner0.testReadAll();
+      //httpScanner0.closeAll();
+      
       HttpScanner httpScanner = new HttpScanner(url);
       return httpScanner;
    }

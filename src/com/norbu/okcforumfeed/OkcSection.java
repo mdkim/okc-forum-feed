@@ -23,7 +23,7 @@ class OkcSection {
    private Date sdate_d;
    
    // "h:mma"
-   private static final DateFormat sdf_hmma = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT, Locale.US);
+   private static final DateFormat sdf_hmma = new SimpleDateFormat("h:mma", Locale.ENGLISH);
    
    public OkcSection(Date connectionDate) {
       this.connectionDate = connectionDate;

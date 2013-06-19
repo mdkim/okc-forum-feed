@@ -14,10 +14,17 @@ class HttpScanner {
    private InputStream is;
    public Scanner scanner;
 
-   public HttpScanner(HttpURLConnection conn, InputStream is, Scanner scanner) {
-      this.conn = conn;
-      this.is = is;
-      this.scanner = scanner;
+   public void testReadAll() throws OkcException {
+      java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(this.is));
+      try {
+         String line;
+         while ((line = reader.readLine()) != null) {
+            Debug.println(line);
+         }
+      } catch (IOException e) {
+         throw new OkcException(e);
+      }
+      
    }
 
    public HttpScanner(String url_s) throws OkcException {
@@ -29,12 +36,17 @@ class HttpScanner {
          conn.setRequestMethod("GET");
          conn.setDoInput(true);
          conn.connect();
+         this.conn = conn;
+         
          int response = conn.getResponseCode();
          if (response != 200) {
             if (conn != null) conn.disconnect();
             throw new OkcException("response = " + response);
          }
+         Debug.println("response=" + response);
          InputStream is = conn.getInputStream();
+         this.is = is;
+         
          Scanner scanner = new Scanner(is);
          this.scanner = scanner;
       } catch (IOException e) {
