@@ -41,7 +41,7 @@ class OkcSection {
       if (text.indexOf("Just now!") > -1) {
          return connectionDate;
       }
-      Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("US/Alaska"));
+      Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(OkcForumFeed.OKC_TIMEZONE));
       cal.setTime(connectionDate);
       // 9 minutes ago
       if (text.endsWith("minutes ago")) {

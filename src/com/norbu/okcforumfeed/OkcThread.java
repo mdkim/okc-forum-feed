@@ -10,7 +10,7 @@ import com.norbu.okcforumfeed.OkcException;
 
 class OkcThread {
 
-   private static final SimpleDateFormat sdf_hhmm_ddMMMyyyy = new SimpleDateFormat("hh:mma dd MMM yyyy", Locale.US);
+   public static final SimpleDateFormat sdf_hhmm_ddMMMyyyy = new SimpleDateFormat("hh:mma dd MMM yyyy [z]", Locale.US);
    private Date connectionDate;
    
    private String tid, tname, tidLastPage, tposter, tdate;

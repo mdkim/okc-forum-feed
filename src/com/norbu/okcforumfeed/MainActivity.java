@@ -1,7 +1,5 @@
 package com.norbu.okcforumfeed;
 
-import java.util.Date;
-
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -26,6 +24,8 @@ public class MainActivity extends Activity {
       super.onCreate(savedInstanceState);
       setContentView(R.layout.activity_main);
 
+      Debug.init(this);
+      
       TextView textView = (TextView) findViewById(R.id.textView1);
       this.textView = textView;
 
@@ -46,13 +46,8 @@ public class MainActivity extends Activity {
          }
       });
 
-      this.okcDownloadTask = new OkcDownloadTask(this.okcThreadArrayAdapter);
-
-      // temp
-      Debug.init(this);
+      this.okcDownloadTask = new OkcDownloadTask(this, this.okcThreadArrayAdapter, this.textView);
    }
-
-
 
    @Override
    public boolean onCreateOptionsMenu(Menu menu) {
@@ -74,9 +69,12 @@ public class MainActivity extends Activity {
       }
       if (!this.okcDownloadTask.isRunning()) {
          this.okcDownloadTask.execute();
-         this.textView.setText("Last updated: " + new Date());
+         this.textView.setText("Working ...");
+         
+         // Task executed only once
+         this.okcDownloadTask = new OkcDownloadTask(this, this.okcThreadArrayAdapter, this.textView);
       } else {
-         this.textView.setText("Wait ...");
+         this.textView.setText("Wait please ...");
       }
    }
 

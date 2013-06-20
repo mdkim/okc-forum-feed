@@ -9,12 +9,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.TimeZone;
+import android.app.ProgressDialog;
 
 class OkcForumFeed {
 
    private static final String URL_SECTIONS = "http://okcupid.com/forum";
    private static final String URL_THREADS_PRE = "http://okcupid.com/forum?sid=";
+   public static final String OKC_TIMEZONE = "GMT-9";
 
    private static final Pattern PATT_SID_NAME = Pattern.compile("<a href=\\\"/forum\\?sid=([0-9]+?)\\\">([^<]+?)</a>");
    private static final Pattern PATT_SDATE = Pattern.compile("posted <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
@@ -26,7 +27,7 @@ class OkcForumFeed {
    private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>, <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
    //private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>,\\s*(.+?)\\s*</p>");
 
-   public List<OkcThread> downloadOkcThreadList() {
+   public List<OkcThread> downloadOkcThreadList(ProgressDialog progressDialog) {
       
       Date lastUpdated = getLastUpdated();
       
@@ -36,6 +37,9 @@ class OkcForumFeed {
       List<OkcThread> result = null;
       try {
 
+         int p=1;
+         progressDialog.setProgress(p++);
+         
          Debug.println("--- PARSING SECTIONS ---");
          // okcSections
          httpScanner = getHttpScanner(URL_SECTIONS + "?disable_mobile=1");
@@ -50,6 +54,9 @@ class OkcForumFeed {
          Debug.println("\n--- PARSING THREADS ---");
          // okcThreads
          for (OkcSection nextSection : okcSectionMap.values()) {
+            
+            progressDialog.setProgress(p++);
+            
             if (!isAfterLastUpdated(nextSection.getSdate_d(), lastUpdated)) {
                Debug.println("\n--- SKIPPING THREADS (sid=" + nextSection.getSid() + ") ---");
                continue;
@@ -66,6 +73,8 @@ class OkcForumFeed {
             httpScanner.closeAll();
          }
 
+         progressDialog.setProgress(p++);
+         
          Debug.println("\n--- ALL THREADS (SORTED) after " + lastUpdated + " ---");
          Collections.sort(okcThreadList, OkcThread.OKC_THREAD_DATE_COMPARATOR);
          result = new ArrayList<OkcThread>(okcThreadList.size());
@@ -78,8 +87,9 @@ class OkcForumFeed {
             Debug.println(nextThread);
          }
          
-      } catch (Exception e) {
+      } catch (OkcException e) {
          e.printStackTrace();
+         // TO DO: pop up a warning or something here
       } finally {
          if (httpScanner != null) httpScanner.closeAll();
       }
@@ -156,20 +166,18 @@ class OkcForumFeed {
    }
 
    private static HttpScanner getHttpScanner(String url) throws OkcException {
-      
-      // temp
-      //HttpScanner httpScanner0 = new HttpScanner(url);
-      //httpScanner0.testReadAll();
-      //httpScanner0.closeAll();
-      
+      /*// test mobile web access
+      HttpScanner httpScanner0 = new HttpScanner(url);
+      httpScanner0.testReadAll();
+      httpScanner0.closeAll();
+      */
       HttpScanner httpScanner = new HttpScanner(url);
       return httpScanner;
    }
 
-   // temporary implementation
    private static Date getLastUpdated() {
       Date lastUpdated = new Date();
-      Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("US/Alaska"));
+      Calendar cal = Calendar.getInstance();
       cal.setTime(lastUpdated);
       cal.add(Calendar.HOUR, -12);
       lastUpdated = cal.getTime();
