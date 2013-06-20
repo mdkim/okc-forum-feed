@@ -1,13 +1,16 @@
 package com.norbu.okcforumfeed;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Locale;
 
 import com.norbu.okcforumfeed.OkcException;
 
 class OkcThread {
 
+   private static final SimpleDateFormat sdf_hhmm_ddMMMyyyy = new SimpleDateFormat("hh:mma dd MMM yyyy", Locale.US);
    private Date connectionDate;
    
    private String tid, tname, tidLastPage, tposter, tdate;
@@ -64,14 +67,19 @@ class OkcThread {
       this.tposter = tposter;
    }
    public String getTdate() {
-      return tdate;
+      return this.tdate;
    }
    public void setTdate(String tdate) throws OkcException {
       this.tdate = tdate;
       this.setTdate_d(OkcSection.parseDate(tdate, this.connectionDate));
    }
+   public String getTdate_formatted() {
+      if (this.tdate_d == null) return null;
+      String text = sdf_hhmm_ddMMMyyyy.format(this.tdate_d);
+      return text;      
+   }
    public Date getTdate_d() {
-      return tdate_d;
+      return this.tdate_d;
    }
    private void setTdate_d(Date tdate_d) {
       this.tdate_d = tdate_d;

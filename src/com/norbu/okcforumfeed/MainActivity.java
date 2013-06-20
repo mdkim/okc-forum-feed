@@ -7,11 +7,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.Menu;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
    private TextView textView;
+   private OkcThreadArrayAdapter okcThreadArrayAdapter;
 
    @Override
    protected void onCreate(Bundle savedInstanceState) {
@@ -21,9 +23,26 @@ public class MainActivity extends Activity {
       TextView textView = (TextView) findViewById(R.id.textView1);
       this.textView = textView;
       
+      ListView listView = (ListView) findViewById(R.id.listView1);
+      OkcThreadArrayAdapter okcThreadArrayAdapter = new OkcThreadArrayAdapter(this);
+      listView.setAdapter(okcThreadArrayAdapter);
+      this.okcThreadArrayAdapter = okcThreadArrayAdapter;
+      
       // temp
       Debug.init(this);
    }
+
+   
+   
+/*
+   @Override
+   protected void onListItemClick(ListView l, View v, int position, long id) {
+   
+      //get selected items
+      String selectedValue = (String) getListAdapter().getItem(position);
+      Toast.makeText(this, selectedValue, Toast.LENGTH_SHORT).show();
+   
+   }*/
 
    @Override
    public boolean onCreateOptionsMenu(Menu menu) {
@@ -40,7 +59,7 @@ public class MainActivity extends Activity {
             getSystemService(Context.CONNECTIVITY_SERVICE);
       NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
       if (networkInfo != null && networkInfo.isConnected()) {
-         new DownloadWebpageTask(this).execute();
+         new OkcDownloadTask(this.okcThreadArrayAdapter).execute();
       } else {
          this.textView.setText("No network connection available.");
       }

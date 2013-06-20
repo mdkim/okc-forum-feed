@@ -26,18 +26,14 @@ class OkcForumFeed {
    //private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>, <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
    private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>,\\s*(.+?)\\s*</p>");
 
-   public static void main(String[] args) {
-      Debug.IS_DEBUG = true;
-      new OkcForumFeed().go();
-   }
-
-   void go() {
+   public List<OkcThread> downloadOkcThreadList() {
       
       Date lastUpdated = getLastUpdated();
       
       Map<String, OkcSection> okcSectionMap = new LinkedHashMap<String, OkcSection>();
       List<OkcThread> okcThreadList = new ArrayList<OkcThread>();
       HttpScanner httpScanner = null;
+      List<OkcThread> result = null;
       try {
 
          Debug.println("--- PARSING SECTIONS ---");
@@ -75,11 +71,13 @@ class OkcForumFeed {
          // make each open a link to tid+lastPage
          Debug.println("\n--- ALL THREADS (SORTED) after " + lastUpdated + " ---");
          Collections.sort(okcThreadList, OkcThread.OKC_THREAD_DATE_COMPARATOR);
+         result = new ArrayList<OkcThread>(okcThreadList.size());
          for (OkcThread nextThread : okcThreadList) {
             if (!isAfterLastUpdated(nextThread.getTdate_d(), lastUpdated)) {
                Debug.println("...");
                continue;
             }
+            result.add(nextThread);
             Debug.println(nextThread);
          }
          
@@ -88,6 +86,7 @@ class OkcForumFeed {
       } finally {
          if (httpScanner != null) httpScanner.closeAll();
       }
+      return result;
    }
 
    private static OkcSection findNextOkcSection(HttpScanner httpScanner) throws OkcException {
