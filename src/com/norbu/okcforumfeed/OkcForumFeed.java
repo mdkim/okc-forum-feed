@@ -13,18 +13,18 @@ import java.util.TimeZone;
 
 class OkcForumFeed {
 
-   private static final String URL_SECTIONS = "http://www.okcupid.com/forum";
-   private static final String URL_THREADS_PRE = "http://www.okcupid.com/forum?sid=";
+   private static final String URL_SECTIONS = "http://okcupid.com/forum";
+   private static final String URL_THREADS_PRE = "http://okcupid.com/forum?sid=";
 
    private static final Pattern PATT_SID_NAME = Pattern.compile("<a href=\\\"/forum\\?sid=([0-9]+?)\\\">([^<]+?)</a>");
-   //private static final Pattern PATT_SDATE = Pattern.compile("posted <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
-   private static final Pattern PATT_SDATE = Pattern.compile("posted (.+?)</p>");
+   private static final Pattern PATT_SDATE = Pattern.compile("posted <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
+   //private static final Pattern PATT_SDATE = Pattern.compile("posted (.+?)</p>");
 
    private static final Pattern PATT_TID_NAME0 = Pattern.compile("<a href=\\\"/forum\\?tid=([0-9]+)\\\"[^>]*?>([^<]+)</a>");
    private static final Pattern PATT_TID_NAME1 = Pattern.compile("(.*?)<p class=\"created_by\">.*?</p>"); // group1 => "Last page"
    private static final Pattern PATT_TID_NAME2 = Pattern.compile("<a href=\\\"/forum\\?tid=[0-9]+?&amp;low=([0-9]+?)\\\">Last page</a>");
-   //private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>, <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
-   private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>,\\s*(.+?)\\s*</p>");
+   private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>, <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
+   //private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>,\\s*(.+?)\\s*</p>");
 
    public List<OkcThread> downloadOkcThreadList() {
       
@@ -38,7 +38,7 @@ class OkcForumFeed {
 
          Debug.println("--- PARSING SECTIONS ---");
          // okcSections
-         httpScanner = getHttpScanner(URL_SECTIONS + "?enable_mobile=1");
+         httpScanner = getHttpScanner(URL_SECTIONS + "?disable_mobile=1");
          while (true) {
             OkcSection nextSection = findNextOkcSection(httpScanner);
             if (nextSection == null) break;
@@ -55,7 +55,7 @@ class OkcForumFeed {
                continue;
             }
             Debug.println("\n--- PARSING THREADS (sid=" + nextSection.getSid() + ") ---");
-            httpScanner = getHttpScanner(URL_THREADS_PRE + nextSection.getSid() + "&enable_mobile=1");
+            httpScanner = getHttpScanner(URL_THREADS_PRE + nextSection.getSid() + "&disable_mobile=1");
             while (true) {
                OkcThread nextThread = findNextOkcThread(httpScanner, nextSection);
                if (nextThread == null) break;
@@ -66,9 +66,6 @@ class OkcForumFeed {
             httpScanner.closeAll();
          }
 
-      // display ALL THREADS (SORTED) after lastUpdated
-         // scrollable
-         // make each open a link to tid+lastPage
          Debug.println("\n--- ALL THREADS (SORTED) after " + lastUpdated + " ---");
          Collections.sort(okcThreadList, OkcThread.OKC_THREAD_DATE_COMPARATOR);
          result = new ArrayList<OkcThread>(okcThreadList.size());

@@ -1,12 +1,17 @@
 package com.norbu.okcforumfeed;
 
+import java.util.Date;
+
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.Menu;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -14,35 +19,40 @@ public class MainActivity extends Activity {
 
    private TextView textView;
    private OkcThreadArrayAdapter okcThreadArrayAdapter;
+   private OkcDownloadTask okcDownloadTask;
 
    @Override
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       setContentView(R.layout.activity_main);
-      
+
       TextView textView = (TextView) findViewById(R.id.textView1);
       this.textView = textView;
-      
+
       ListView listView = (ListView) findViewById(R.id.listView1);
       OkcThreadArrayAdapter okcThreadArrayAdapter = new OkcThreadArrayAdapter(this);
       listView.setAdapter(okcThreadArrayAdapter);
       this.okcThreadArrayAdapter = okcThreadArrayAdapter;
-      
+
+      listView.setOnItemClickListener(new ListView.OnItemClickListener(){
+         @Override
+         public void onItemClick(AdapterView<?> a, View v, int i, long l) {
+            OkcThread okcThread = (OkcThread) a.getItemAtPosition(i);
+            String url = "http://okcupid.com/forum?disable_mobile=1&tid=" + okcThread.getTid() + "&low=" + okcThread.getTidLastPage();
+            Debug.println("ACTION:url=" + url);
+            Uri uri = Uri.parse(url);
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, uri);
+            startActivity(browserIntent);
+         }
+      });
+
+      this.okcDownloadTask = new OkcDownloadTask(this.okcThreadArrayAdapter);
+
       // temp
       Debug.init(this);
    }
 
-   
-   
-/*
-   @Override
-   protected void onListItemClick(ListView l, View v, int position, long id) {
-   
-      //get selected items
-      String selectedValue = (String) getListAdapter().getItem(position);
-      Toast.makeText(this, selectedValue, Toast.LENGTH_SHORT).show();
-   
-   }*/
+
 
    @Override
    public boolean onCreateOptionsMenu(Menu menu) {
@@ -52,16 +62,21 @@ public class MainActivity extends Activity {
    }
 
    public void startMain(View view) {
-      
+
       Debug.println("startMain");
-      
+
       ConnectivityManager connMgr = (ConnectivityManager) 
             getSystemService(Context.CONNECTIVITY_SERVICE);
       NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-      if (networkInfo != null && networkInfo.isConnected()) {
-         new OkcDownloadTask(this.okcThreadArrayAdapter).execute();
+      if (networkInfo == null || !networkInfo.isConnected()) {
+         this.textView.setText("No network connection");
+         return;
+      }
+      if (!this.okcDownloadTask.isRunning()) {
+         this.okcDownloadTask.execute();
+         this.textView.setText("Last updated: " + new Date());
       } else {
-         this.textView.setText("No network connection available.");
+         this.textView.setText("Wait ...");
       }
    }
 

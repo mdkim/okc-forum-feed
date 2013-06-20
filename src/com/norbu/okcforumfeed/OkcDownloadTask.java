@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 public class OkcDownloadTask extends AsyncTask<String, Void, List<OkcThread>> {
 
    private OkcThreadArrayAdapter okcThreadArrayAdapter;
+   private boolean isRunning = false;
 
    public OkcDownloadTask(OkcThreadArrayAdapter okcThreadArrayAdapter) {
       this.okcThreadArrayAdapter = okcThreadArrayAdapter;
@@ -16,8 +17,11 @@ public class OkcDownloadTask extends AsyncTask<String, Void, List<OkcThread>> {
    protected List<OkcThread> doInBackground(String... urls) {
       Debug.println("doInBackground");
       
+      this.isRunning  = true;
       OkcForumFeed okcff = new OkcForumFeed();
       List<OkcThread> okcThreadList = okcff.downloadOkcThreadList();
+      
+      this.isRunning = false;
       return okcThreadList;
    }
    
@@ -27,5 +31,9 @@ public class OkcDownloadTask extends AsyncTask<String, Void, List<OkcThread>> {
       for (OkcThread okcThread : result) {
          okcThreadArrayAdapter.add(okcThread);
       }
+   }
+
+   public boolean isRunning() {
+      return this.isRunning;
    }
 }

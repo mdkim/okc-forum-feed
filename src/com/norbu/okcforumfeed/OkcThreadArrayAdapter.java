@@ -29,7 +29,9 @@ public class OkcThreadArrayAdapter extends ArrayAdapter<OkcThread> {
       OkcThread okcThread = this.getItem(position);
       textView1.setText(okcThread.getOkcSection().getSname());
       textView2.setText(okcThread.getTname());
-      textView3.setText(okcThread.getTdate_formatted() + ", " + okcThread.getTposter());
+      String text3 = okcThread.getTdate_formatted() + ", " + okcThread.getTposter();
+      if (okcThread.getTidLastPage() != null) text3 += " (Last Page)";
+      textView3.setText(text3);
 
       return rowView;
    }

@@ -7,7 +7,6 @@
         android:id="@+id/okcthread1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@+id/okcthread1"
         android:textSize="10sp"
         android:textStyle="bold" />
 
@@ -15,14 +14,12 @@
         android:id="@+id/okcthread2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@+id/okcthread2"
         android:textSize="12sp" />
 
     <TextView
         android:id="@+id/okcthread3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@+id/okcthread3"
         android:textSize="8sp" />
 
 </LinearLayout>
