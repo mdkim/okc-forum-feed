@@ -14,6 +14,7 @@ class HttpScanner {
    private InputStream is;
    public Scanner scanner;
 
+   // dump to Debug.println()
    public void testReadAll() throws OkcException {
       java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(this.is));
       try {
@@ -24,15 +25,14 @@ class HttpScanner {
       } catch (IOException e) {
          throw new OkcException(e);
       }
-      
    }
 
    public HttpScanner(String url_s) throws OkcException {
       try {
          URL url = new URL(url_s);
          HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-         conn.setReadTimeout(10000 /* milliseconds */);
-         conn.setConnectTimeout(15000 /* milliseconds */);
+         conn.setReadTimeout(10000); // milliseconds
+         conn.setConnectTimeout(15000);
          conn.setRequestMethod("GET");
          conn.setDoInput(true);
          conn.connect();

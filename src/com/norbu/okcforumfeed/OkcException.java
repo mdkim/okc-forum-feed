@@ -11,4 +11,21 @@ public class OkcException extends Exception {
    public OkcException(Throwable e) {
       super(e);
    }
+   
+   public boolean isCauseIOException() {
+      Throwable cause = this.getCause();
+      if (cause == null) return false;
+      if (cause instanceof java.io.IOException) {
+         return true;
+      }
+      return false;
+   }
+
+   @Override
+   public String getMessage() {
+      Throwable cause = this.getCause();
+      if (cause == null) return super.getMessage();
+      String msg = cause.getMessage();
+      return msg;
+   }
 }

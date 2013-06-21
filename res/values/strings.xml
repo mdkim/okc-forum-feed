@@ -5,5 +5,9 @@
     <string name="action_settings">Settings</string>
     <string name="button_label">Refresh</string>
     <string name="textView1">Click Refresh\nto download recent threads</string>
+    <string name="action_browser">Open in Browser</string>
+    <string name="action_webview">Open</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="title_activity_web_view">OKCupid Forum page</string>
 
 </resources>

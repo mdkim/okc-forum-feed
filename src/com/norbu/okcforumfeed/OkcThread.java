@@ -52,6 +52,7 @@ class OkcThread {
    public void setTname(String tname) {
       tname = tname.replaceAll("(?:\\n|\\r)", " ");
       tname = tname.trim();
+      tname = OkcSection.parseHtml(tname);
       this.tname = tname;
    }
    public String getTidLastPage() {

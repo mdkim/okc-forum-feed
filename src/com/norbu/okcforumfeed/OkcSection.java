@@ -34,6 +34,11 @@ class OkcSection {
       return "[sid=" + sid + ", sname=" + sname + ", sdate_d=" + sdate_d + ", sdate=" + sdate + "]";
    }
 
+   public static String parseHtml(String text) {
+      if (text == null) return null;
+      text = text.replaceAll("&amp;", "&");
+      return text;
+   }
    // parsing date: Just Now, N minutes ago, Today, Yesterday, Mmm Dd
    public static Date parseDate(String text, Date connectionDate) throws OkcException {
       if (text == null) return null;
@@ -115,6 +120,7 @@ class OkcSection {
       return sname;
    }
    public void setSname(String sname) {
+      sname = parseHtml(sname);
       this.sname = sname;
    }
    public String getSdate() {

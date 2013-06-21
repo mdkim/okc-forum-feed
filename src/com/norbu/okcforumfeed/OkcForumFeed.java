@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+
 import android.app.ProgressDialog;
 
 class OkcForumFeed {
@@ -27,7 +28,7 @@ class OkcForumFeed {
    private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>, <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
    //private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>,\\s*(.+?)\\s*</p>");
 
-   public List<OkcThread> downloadOkcThreadList(ProgressDialog progressDialog) {
+   public List<OkcThread> downloadOkcThreadList(ProgressDialog progressDialog) throws OkcException {
       
       Date lastUpdated = getLastUpdated();
       
@@ -35,8 +36,12 @@ class OkcForumFeed {
       List<OkcThread> okcThreadList = new ArrayList<OkcThread>();
       HttpScanner httpScanner = null;
       List<OkcThread> result = null;
+      
       try {
 
+         // temp
+         //if (Debug.IS_DEBUG) return null;
+         
          int p=1;
          progressDialog.setProgress(p++);
          
@@ -72,7 +77,6 @@ class OkcForumFeed {
             }
             httpScanner.closeAll();
          }
-
          progressDialog.setProgress(p++);
          
          Debug.println("\n--- ALL THREADS (SORTED) after " + lastUpdated + " ---");
@@ -86,10 +90,8 @@ class OkcForumFeed {
             result.add(nextThread);
             Debug.println(nextThread);
          }
+         progressDialog.setProgress(p++);
          
-      } catch (OkcException e) {
-         e.printStackTrace();
-         // TO DO: pop up a warning or something here
       } finally {
          if (httpScanner != null) httpScanner.closeAll();
       }
@@ -133,8 +135,9 @@ class OkcForumFeed {
       Matcher m = PATT_TID_NAME0.matcher(foundText);
       boolean isFound = m.matches();
       if (!isFound) throw new OkcException("PATT_TID_NAME0 not found: " + foundText);
-      okcThread.setTid(m.group(1));
-      okcThread.setTname(m.group(2));
+      String tid = m.group(1);
+      okcThread.setTid(tid);
+      okcThread.setTname(m.group(2));      
 
       // tidLastPage
       foundText = scanner.findWithinHorizon(PATT_TID_NAME1, 0);
@@ -152,6 +155,9 @@ class OkcForumFeed {
          okcThread.setTidLastPage(tidLastPage);
       }
 
+      // General."A new OkC Toy / Blog Research Tool : MyBestFace" has no commenters displayed
+      if (tid.equals("16982734563223297864")) return null;
+      
       // tposter, tdate
       foundText = scanner.findWithinHorizon(PATT_TDATE, 0);
       if (foundText == null) return null;
