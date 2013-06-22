@@ -95,11 +95,7 @@ public class OkcThreadArrayAdapter extends ArrayAdapter<OkcThread> {
       }
    }
 
-   public void deserializeFromReader(Reader reader) throws OkcException {
-      
-      // TO DO: deserialize lastUpdated
-      
-      
+   public void deserializeFromReader(Reader reader) throws OkcException {      
       BufferedReader br = new BufferedReader(reader);
       StringBuffer sb = new StringBuffer();
       String nextline;
