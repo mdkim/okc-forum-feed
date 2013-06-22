@@ -3,31 +3,26 @@ package com.norbu.okcforumfeed;
 import java.util.Date;
 import java.util.List;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.widget.TextView;
 
 public class OkcDownloadTask extends AsyncTask<String, Void, List<OkcThread>> {
 
-   private OkcThreadArrayAdapter okcThreadArrayAdapter;
+   private MainActivity mainActivity;
+   //
    private boolean isRunning = false;
-   private TextView textView;
-   private ProgressDialog progressDialog;
-   private AlertDialog alertDialog;
    private OkcException lastOkcException;
-
+   
    public OkcDownloadTask(MainActivity mainActivity) {
-      this.okcThreadArrayAdapter = mainActivity.getOkcThreadArrayAdapter();
-      this.textView = mainActivity.getTextView();
-      this.progressDialog = mainActivity.getProgressDialog();
-      this.alertDialog = mainActivity.getAlertDialog();
+      this.mainActivity = mainActivity;
    }
 
    @Override
    protected void onPreExecute() {
-      this.progressDialog.setProgress(1);
-      this.progressDialog.show();
+      ProgressDialog progressDialog = this.mainActivity.getProgressDialog();
+      progressDialog.setProgress(1);
+      progressDialog.show();
    }
 
    @Override
@@ -38,9 +33,10 @@ public class OkcDownloadTask extends AsyncTask<String, Void, List<OkcThread>> {
       List<OkcThread> okcThreadList = null;
       try {
          
-         Date lastUpdated = this.okcThreadArrayAdapter.getLastUpdated();
-         this.okcThreadArrayAdapter.setClearAllIsUpdated();
-         okcThreadList = OkcForumFeed.downloadOkcThreadList(lastUpdated, this.progressDialog);
+         OkcThreadArrayAdapter okcThreadArrayAdapter = this.mainActivity.getOkcThreadArrayAdapter();
+         Date lastUpdated = okcThreadArrayAdapter.getLastUpdated();
+         okcThreadArrayAdapter.setClearAllIsUpdated();
+         okcThreadList = OkcForumFeed.downloadOkcThreadList(lastUpdated, this.mainActivity.getProgressDialog());
       } catch (OkcException e) {
          e.printStackTrace();
          this.lastOkcException = e;
@@ -56,14 +52,12 @@ public class OkcDownloadTask extends AsyncTask<String, Void, List<OkcThread>> {
       String now_s = OkcThread.sdf_hhmm_ddMMMyyyy.format(now);
       if (result == null) {
          // OkcException caught in doInBackground()
-         MainActivity.showOkcExceptionDialog(alertDialog, this.lastOkcException);
-         this.textView.setText("Could not refresh:\n" + now_s);
-         this.progressDialog.dismiss();
+         MainActivity.showOkcExceptionDialog(this.mainActivity.getAlertDialog(), this.lastOkcException);
+         this.onPostExecute_Finish("Could not refresh:\n" + now_s);
          return;
       }
 
-      OkcThreadArrayAdapter okcThreadArrayAdapter = this.okcThreadArrayAdapter;
-
+      OkcThreadArrayAdapter okcThreadArrayAdapter = this.mainActivity.getOkcThreadArrayAdapter();
       if (okcThreadArrayAdapter.getCount() > 0) {
          // insert at beginning with setIsUpdated(true) if okcThreadAdapter has items
          int i=0;
@@ -77,9 +71,13 @@ public class OkcDownloadTask extends AsyncTask<String, Void, List<OkcThread>> {
             okcThreadArrayAdapter.add(okcThread);
          }
       }
-      this.okcThreadArrayAdapter.setLastUpdated(now);
-      this.textView.setText("Last updated:\n" + now_s);
-      this.progressDialog.dismiss();
+      okcThreadArrayAdapter.setLastUpdated(now);
+      this.onPostExecute_Finish("Last updated:\n" + now_s);
+   }
+   private void onPostExecute_Finish(String text) {
+      TextView textView = this.mainActivity.getTextView();
+      textView.setText(text);
+      this.mainActivity.resetProgressDialog();
    }
 
    public boolean isRunning() {

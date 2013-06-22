@@ -7,9 +7,11 @@ public class OkcException extends Exception {
    public OkcException(String msg) {
       super(msg);
    }
-
    public OkcException(Throwable e) {
       super(e);
+   }
+   public OkcException(String msg, Throwable e) {
+      super(msg, e);
    }
    
    public boolean isCauseIOException() {

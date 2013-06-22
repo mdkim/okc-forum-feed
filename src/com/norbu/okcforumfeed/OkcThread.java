@@ -20,10 +20,10 @@ class OkcThread {
    //private OkcSection okcSection; // only needed for sname
    private String sname;
    private Date connectionDate;
-   private boolean isUpdated;
+   private boolean isUpdated, isVisited;
    
    private static final String TID="TID", TNAME="TNAME", TID_LAST_PAGE="TID_LAST_PAGE", TPOSTER="TPOSTER", TDATE="TDATE",
-         TDATE_D="TDATE_D", SNAME="SNAME", CONNECTION_DATE="CONNECTION_DATE", IS_UPDATED="IS_UPDATED";
+         TDATE_D="TDATE_D", SNAME="SNAME", CONNECTION_DATE="CONNECTION_DATE", IS_UPDATED="IS_UPDATED", IS_VISITED="IS_VISITED";
    
    public static final Comparator<OkcThread> OKC_THREAD_DATE_COMPARATOR = new Comparator<OkcThread>() {
       public int compare(OkcThread t1, OkcThread t2) {
@@ -49,6 +49,7 @@ class OkcThread {
       this.connectionDate = jsonObject.isNull(CONNECTION_DATE) ? null : toDate((Long) jsonObject.get(CONNECTION_DATE));
       // boolean
       this.isUpdated = jsonObject.isNull(IS_UPDATED) ? false : (Boolean) jsonObject.get(IS_UPDATED);
+      this.isVisited = jsonObject.isNull(IS_VISITED) ? false : (Boolean) jsonObject.get(IS_VISITED);
    }
 
    @Override
@@ -117,6 +118,12 @@ class OkcThread {
    public void setIsUpdated(boolean isUpdated) {
       this.isUpdated = isUpdated;
    }
+   public boolean getIsVisited() {
+      return this.isVisited;
+   }
+   public void setVisited(boolean isVisited) {
+      this.isVisited = isVisited;
+   }  
 
    public JSONObject getJSONObject() throws OkcException {
       JSONObject jsonObject = new JSONObject();
@@ -130,6 +137,7 @@ class OkcThread {
          jsonObject.put(SNAME, this.sname);
          jsonObject.put(CONNECTION_DATE, toLong(this.connectionDate));
          jsonObject.put(IS_UPDATED, this.isUpdated);
+         jsonObject.put(IS_VISITED, this.isVisited);
       } catch (JSONException e) {
          throw new OkcException(e);
       }
@@ -150,5 +158,5 @@ class OkcThread {
       long date_l = date_long.longValue();
       Date date = new Date(date_l);
       return date;
-   }  
+   }
 }

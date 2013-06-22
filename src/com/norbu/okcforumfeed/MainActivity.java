@@ -16,6 +16,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -29,6 +30,7 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
+   public static Typeface tf_roboto_bc, tf_roboto;
    private static final String CACHE_THREADARRAYADAPTER_FILE = "okc.taa.cache";
    private OkcDownloadTask okcDownloadTask;
    // fields used by OkcDownloadTask->OkcForumFeed
@@ -43,6 +45,9 @@ public class MainActivity extends Activity {
       setContentView(R.layout.activity_main);
 
       Debug.println("MainActivity.onCreate");
+      
+      tf_roboto_bc = Typeface.createFromAsset(getAssets(), "fonts/Roboto-BoldCondensed.ttf");
+      tf_roboto = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Regular.ttf");
       
       // for OkcDownloadTask.onPostExecute()
       TextView textView = (TextView) findViewById(R.id.textView1);
@@ -72,16 +77,7 @@ public class MainActivity extends Activity {
          }
       });
       this.alertDialog = alertDialog;
-      
-      // for OkcForumFeed.downloadOkcThreadList()
-      ProgressDialog progressDialog = new ProgressDialog(this); // THEME
-      progressDialog.setTitle("Downloading from web");
-      progressDialog.setMessage("Examining forum threads ...");
-      progressDialog.setCancelable(true);
-      progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-      progressDialog.setIndeterminate(false);
-      progressDialog.setMax(20);
-      this.progressDialog = progressDialog;
+      this.progressDialog = createProgressDialog(this);
       
       try {
          Debug.init(this, true, Debug.INFO);
@@ -89,6 +85,18 @@ public class MainActivity extends Activity {
          e.printStackTrace();
          showOkcExceptionDialog(this.alertDialog, e);
       }
+   }
+
+   public static ProgressDialog createProgressDialog(Context context) {
+      // for OkcForumFeed.downloadOkcThreadList()
+      ProgressDialog progressDialog = new ProgressDialog(context); // THEME
+      progressDialog.setTitle("Downloading from web");
+      progressDialog.setMessage("Examining forum threads ...");
+      progressDialog.setCancelable(true);
+      progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+      progressDialog.setIndeterminate(false);
+      progressDialog.setMax(20);
+      return progressDialog;
    }
 
    @Override
@@ -118,17 +126,36 @@ public class MainActivity extends Activity {
 
    @Override
    public boolean onCreateOptionsMenu(Menu menu) {
-      // not implemented
       getMenuInflater().inflate(R.menu.main, menu);
       return true;
    }
 
+   @Override
+   public boolean onOptionsItemSelected(MenuItem item) {
+       // Handle item selection
+       switch (item.getItemId()) {
+       case R.id.action_clear:
+           this.okcThreadArrayAdapter.clear();
+           this.okcThreadArrayAdapter.setLastUpdated(null);
+           this.textView.setText(getString(R.string.textView1));
+           this.clearCache();
+           return true;
+       case R.id.action_settings:
+           // not implemented
+           return true;
+       default:
+           return super.onOptionsItemSelected(item);
+       }
+   }
+   
    private void openOkcThreadInBrowser(int i) {
       String url = getOkcThreadUrl(i);
       
       Uri uri = Uri.parse(url);
       Intent browserIntent = new Intent(Intent.ACTION_VIEW, uri);
       startActivity(browserIntent);
+      
+      this.okcThreadArrayAdapter.setVisited(i);
    }
    private void openOkcThreadWebView(int i) {
       String url = getOkcThreadUrl(i);
@@ -136,6 +163,8 @@ public class MainActivity extends Activity {
       Intent intent = new Intent(this, WebViewActivity.class);
       intent.putExtra(WebViewActivity.INTENT_URL, url);
       startActivity(intent);
+      
+      this.okcThreadArrayAdapter.setVisited(i);
    }
 
    private String getOkcThreadUrl(int i) {
@@ -189,8 +218,13 @@ public class MainActivity extends Activity {
       }
       
       Date lastUpdated = this.okcThreadArrayAdapter.getLastUpdated();
-      String lastUpdated_s = OkcThread.sdf_hhmm_ddMMMyyyy.format(lastUpdated);
-      this.textView.setText("(From cache) Last updated:\n" + lastUpdated_s);
+      String lastUpdated_s;
+      if (lastUpdated == null) {
+         this.textView.setText(getString(R.string.textView1));
+      } else {
+         lastUpdated_s = OkcThread.sdf_hhmm_ddMMMyyyy.format(lastUpdated);
+         this.textView.setText("(From cache) Last updated:\n" + lastUpdated_s);
+      }
    }
    @Override
    protected void onResume() {
@@ -221,7 +255,17 @@ public class MainActivity extends Activity {
          showOkcExceptionDialog(this.alertDialog, e);
       }
    }
-
+   private void clearCache() {
+      File file = new File(getCacheDir(), CACHE_THREADARRAYADAPTER_FILE);
+      FileWriter fw;
+      try {
+         fw = new FileWriter(file);
+         fw.close();
+      } catch (IOException e) {
+         showOkcExceptionDialog(this.alertDialog, new OkcException(e));
+      }
+   }
+   
    // cannot call this from doInBackground() thread
    public static void showOkcExceptionDialog(AlertDialog alertDialog, OkcException e) {
       e.printStackTrace();
@@ -248,5 +292,9 @@ public class MainActivity extends Activity {
    }
    public AlertDialog getAlertDialog() {
       return this.alertDialog;
+   }
+   public void resetProgressDialog() {
+      this.progressDialog.dismiss();
+      this.progressDialog = MainActivity.createProgressDialog(this);
    }
 }

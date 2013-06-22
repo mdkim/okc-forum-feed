@@ -41,9 +41,16 @@ public class OkcThreadArrayAdapter extends ArrayAdapter<OkcThread> {
       TextView textView1 = (TextView) rowView.findViewById(R.id.okcthread1);
       TextView textView2 = (TextView) rowView.findViewById(R.id.okcthread2);
       TextView textView3 = (TextView) rowView.findViewById(R.id.okcthread3);
+      textView1.setTypeface(MainActivity.tf_roboto_bc);
+      textView2.setTypeface(MainActivity.tf_roboto);
+      textView3.setTypeface(MainActivity.tf_roboto);
       
       OkcThread okcThread = this.getItem(position);
-      if (okcThread.getIsUpdated()) {
+      if (okcThread.getIsVisited()) {
+         textView1.setBackgroundColor(0xffcccccc);
+         textView2.setBackgroundColor(0xffcccccc);
+         textView3.setBackgroundColor(0xffcccccc);
+      } else if (okcThread.getIsUpdated()) {
          textView1.setBackgroundColor(0xffffffcc);
          textView2.setBackgroundColor(0xffffffcc);
          textView3.setBackgroundColor(0xffffffcc);
@@ -71,6 +78,10 @@ public class OkcThreadArrayAdapter extends ArrayAdapter<OkcThread> {
          okcThread = this.getItem(i);
          okcThread.setIsUpdated(false);
       }
+   }
+   public void setVisited(int position) {
+      OkcThread okcThread = this.getItem(position);
+      okcThread.setVisited(true);
    }
 
    public void serializeToWriter(Writer writer) throws OkcException {
@@ -113,15 +124,17 @@ public class OkcThreadArrayAdapter extends ArrayAdapter<OkcThread> {
          JSONObject jsonArrayAdapter = new JSONObject(text);
          JSONArray jsonArray = (JSONArray) jsonArrayAdapter.get(JSON_ARRAY);
          JSONObject jsonObject;
+         this.clear();
          for (int i=0; i < jsonArray.length(); i++) {
             jsonObject = (JSONObject) jsonArray.get(i);
             this.add(new OkcThread(jsonObject));
          }
-         Date lastUpdated = OkcThread.toDate((Long) jsonArrayAdapter.get(LAST_UPDATED));
+         Long lastUpdated_long = jsonArrayAdapter.isNull(LAST_UPDATED) ? null : (Long) jsonArrayAdapter.get(LAST_UPDATED);
+         Date lastUpdated = OkcThread.toDate(lastUpdated_long);
          this.lastUpdated = lastUpdated;
       } catch (JSONException e) {
-         throw new OkcException(e);
+         e.printStackTrace();
+         throw new OkcException("[Temporary cache error]"); // e
       }
-
    }
 }
