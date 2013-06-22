@@ -1,5 +1,11 @@
 package com.norbu.okcforumfeed;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Date;
+
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -23,6 +29,7 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
+   private static final String CACHE_THREADARRAYADAPTER_FILE = "okc.taa.cache";
    private OkcDownloadTask okcDownloadTask;
    // fields used by OkcDownloadTask->OkcForumFeed
    private TextView textView;
@@ -35,7 +42,6 @@ public class MainActivity extends Activity {
       super.onCreate(savedInstanceState);
       setContentView(R.layout.activity_main);
 
-      Debug.init(this);
       Debug.println("MainActivity.onCreate");
       
       // for OkcDownloadTask.onPostExecute()
@@ -77,7 +83,12 @@ public class MainActivity extends Activity {
       progressDialog.setMax(20);
       this.progressDialog = progressDialog;
       
-      this.okcDownloadTask = new OkcDownloadTask(this);
+      try {
+         Debug.init(this, true, Debug.INFO);
+      } catch (OkcException e) {
+         e.printStackTrace();
+         showOkcExceptionDialog(this.alertDialog, e);
+      }
    }
 
    @Override
@@ -107,7 +118,7 @@ public class MainActivity extends Activity {
 
    @Override
    public boolean onCreateOptionsMenu(Menu menu) {
-      // TO DO: Inflate the menu; this adds items to the action bar if it is present.
+      // not implemented
       getMenuInflater().inflate(R.menu.main, menu);
       return true;
    }
@@ -146,12 +157,13 @@ public class MainActivity extends Activity {
          this.textView.setText("No network connection");
          return;
       }
-      if (!this.okcDownloadTask.isRunning()) {
-         this.okcDownloadTask.execute();
-         this.textView.setText("Working ...");
+      if (this.okcDownloadTask == null || !this.okcDownloadTask.isRunning()) {
          
          // create new Task, since Task executed only once
          this.okcDownloadTask = new OkcDownloadTask(this);
+         
+         this.okcDownloadTask.execute();
+         this.textView.setText("Working ...");
       } else {
          this.textView.setText("Wait please ...");
       }
@@ -161,6 +173,24 @@ public class MainActivity extends Activity {
    protected void onStart() {
       super.onStart();
       Debug.println("MainActivity.onStart");
+      
+      // read okcThreadArrayAdapter from cache
+      File file = new File(getCacheDir(), CACHE_THREADARRAYADAPTER_FILE);
+      if (!file.exists()) return;
+      FileReader reader = null;
+      try {
+         reader = new FileReader(file);
+         this.okcThreadArrayAdapter.deserializeFromReader(reader);
+         if (reader != null) reader.close();
+      } catch (IOException e) {
+         showOkcExceptionDialog(this.alertDialog, new OkcException(e));
+      } catch (OkcException e) {
+         showOkcExceptionDialog(this.alertDialog, e);
+      }
+      
+      Date lastUpdated = this.okcThreadArrayAdapter.getLastUpdated();
+      String lastUpdated_s = OkcThread.sdf_hhmm_ddMMMyyyy.format(lastUpdated);
+      this.textView.setText("(From cache) Last updated:\n" + lastUpdated_s);
    }
    @Override
    protected void onResume() {
@@ -176,10 +206,37 @@ public class MainActivity extends Activity {
    @Override
    protected void onStop() {
       super.onStop();
-      
       Debug.println("MainActivity.onStop");
+      
+      // store okcThreadArrayAdapter to cache
+      File file = new File(getCacheDir(), CACHE_THREADARRAYADAPTER_FILE);
+      FileWriter fw = null;
+      try {
+         fw = new FileWriter(file);
+         this.okcThreadArrayAdapter.serializeToWriter(fw);
+         if (fw != null) fw.close();
+      } catch (IOException e) {
+         showOkcExceptionDialog(this.alertDialog, new OkcException(e));
+      } catch (OkcException e) {
+         showOkcExceptionDialog(this.alertDialog, e);
+      }
    }
 
+   // cannot call this from doInBackground() thread
+   public static void showOkcExceptionDialog(AlertDialog alertDialog, OkcException e) {
+      e.printStackTrace();
+      
+      String title;
+      if (e.isCauseIOException()) {
+         title = "Network connectivity issue";
+      } else {
+         title = "Unexpected error";
+      }
+      alertDialog.setTitle(title);
+      alertDialog.setMessage(e.getMessage());
+      alertDialog.show();
+   }
+   
    public TextView getTextView() {
       return this.textView;
    }

@@ -54,14 +54,14 @@ class HttpScanner {
       }
    }
 
-   public void closeAll() {
+   public void closeAll() throws OkcException {
       try {
 
          if (scanner != null) scanner.close();
          if (is != null) is.close();
          if (conn != null) conn.disconnect();
       } catch (IOException e) {
-         e.printStackTrace();
+         throw new OkcException(e);
       }
       Debug.println("closeAll() finished");
    }

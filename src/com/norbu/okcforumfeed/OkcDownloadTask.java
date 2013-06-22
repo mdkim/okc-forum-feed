@@ -35,10 +35,12 @@ public class OkcDownloadTask extends AsyncTask<String, Void, List<OkcThread>> {
       Debug.println("doInBackground");
 
       this.isRunning  = true;
-      OkcForumFeed okcff = new OkcForumFeed();
       List<OkcThread> okcThreadList = null;
       try {
-         okcThreadList = okcff.downloadOkcThreadList(this.progressDialog);
+         
+         Date lastUpdated = this.okcThreadArrayAdapter.getLastUpdated();
+         this.okcThreadArrayAdapter.setClearAllIsUpdated();
+         okcThreadList = OkcForumFeed.downloadOkcThreadList(lastUpdated, this.progressDialog);
       } catch (OkcException e) {
          e.printStackTrace();
          this.lastOkcException = e;
@@ -50,31 +52,34 @@ public class OkcDownloadTask extends AsyncTask<String, Void, List<OkcThread>> {
    @Override
    protected void onPostExecute(List<OkcThread> result) {
       
-      String date_s = OkcThread.sdf_hhmm_ddMMMyyyy.format(new Date());
+      Date now = new Date();
+      String now_s = OkcThread.sdf_hhmm_ddMMMyyyy.format(now);
       if (result == null) {
          // OkcException caught in doInBackground()
-         showOkcExceptionDialog(alertDialog, this.lastOkcException);
-         this.textView.setText("Could not refresh:\n" + date_s);
-      } else {
+         MainActivity.showOkcExceptionDialog(alertDialog, this.lastOkcException);
+         this.textView.setText("Could not refresh:\n" + now_s);
+         this.progressDialog.dismiss();
+         return;
+      }
 
-         OkcThreadArrayAdapter okcThreadArrayAdapter = this.okcThreadArrayAdapter;
+      OkcThreadArrayAdapter okcThreadArrayAdapter = this.okcThreadArrayAdapter;
+
+      if (okcThreadArrayAdapter.getCount() > 0) {
+         // insert at beginning with setIsUpdated(true) if okcThreadAdapter has items
+         int i=0;
+         for (OkcThread okcThread : result) {
+            okcThread.setIsUpdated(true);
+            okcThreadArrayAdapter.insert(okcThread, i++);
+         }
+      } else {
+         // normal population of okcThreadArrayAdapter
          for (OkcThread okcThread : result) {
             okcThreadArrayAdapter.add(okcThread);
          }
-         this.textView.setText("Last updated:\n" + date_s);
       }
+      this.okcThreadArrayAdapter.setLastUpdated(now);
+      this.textView.setText("Last updated:\n" + now_s);
       this.progressDialog.dismiss();
-   }
-   private static void showOkcExceptionDialog(AlertDialog alertDialog, OkcException e) {
-      String title;
-      if (e.isCauseIOException()) {
-         title = "Network connectivity issue";
-      } else {
-         title = "Unexpected error";
-      }
-      alertDialog.setTitle(title);
-      alertDialog.setMessage(e.getMessage());
-      alertDialog.show();
    }
 
    public boolean isRunning() {

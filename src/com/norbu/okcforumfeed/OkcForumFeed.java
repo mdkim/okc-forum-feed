@@ -28,9 +28,10 @@ class OkcForumFeed {
    private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>, <span class=\"fancydate\" id=\"fancydate_[0-9]+?\">(.+?)</span>");
    //private static final Pattern PATT_TDATE = Pattern.compile("<a href=\\\"/profile/.+?/\\\">([^<]+)</a>,\\s*(.+?)\\s*</p>");
 
-   public List<OkcThread> downloadOkcThreadList(ProgressDialog progressDialog) throws OkcException {
+   public static List<OkcThread> downloadOkcThreadList(Date lastUpdated, ProgressDialog progressDialog) throws OkcException {
       
-      Date lastUpdated = getLastUpdated();
+      if (lastUpdated == null) lastUpdated = getDefaultLastUpdated();
+      Debug.println("downloadOkcThreadList.lastUpdated=" + lastUpdated);
       
       Map<String, OkcSection> okcSectionMap = new LinkedHashMap<String, OkcSection>();
       List<OkcThread> okcThreadList = new ArrayList<OkcThread>();
@@ -45,33 +46,33 @@ class OkcForumFeed {
          int p=1;
          progressDialog.setProgress(p++);
          
-         Debug.println("--- PARSING SECTIONS ---");
+         Debug.println("--- PARSING SECTIONS ---", Debug.VERBOSE);
          // okcSections
          httpScanner = getHttpScanner(URL_SECTIONS + "?disable_mobile=1");
          while (true) {
             OkcSection nextSection = findNextOkcSection(httpScanner);
             if (nextSection == null) break;
-            Debug.println(isAfterLastUpdated(nextSection.getSdate_d(), lastUpdated) + ": " + nextSection);
+            Debug.println(isAfterLastUpdated(nextSection.getSdate_d(), lastUpdated) + ": " + nextSection, Debug.VERBOSE);
             okcSectionMap.put(nextSection.getSid(), nextSection);
          }
          httpScanner.closeAll();
 
-         Debug.println("\n--- PARSING THREADS ---");
+         Debug.println("\n--- PARSING THREADS ---", Debug.VERBOSE);
          // okcThreads
          for (OkcSection nextSection : okcSectionMap.values()) {
             
             progressDialog.setProgress(p++);
             
             if (!isAfterLastUpdated(nextSection.getSdate_d(), lastUpdated)) {
-               Debug.println("\n--- SKIPPING THREADS (sid=" + nextSection.getSid() + ") ---");
+               Debug.println("\n--- SKIPPING THREADS (sid=" + nextSection.getSid() + ") ---", Debug.VERBOSE);
                continue;
             }
-            Debug.println("\n--- PARSING THREADS (sid=" + nextSection.getSid() + ") ---");
+            Debug.println("\n--- PARSING THREADS (sid=" + nextSection.getSid() + ") ---", Debug.VERBOSE);
             httpScanner = getHttpScanner(URL_THREADS_PRE + nextSection.getSid() + "&disable_mobile=1");
             while (true) {
                OkcThread nextThread = findNextOkcThread(httpScanner, nextSection);
                if (nextThread == null) break;
-               Debug.println(nextThread);
+               Debug.println(nextThread, Debug.VERBOSE);
                nextSection.addThread(nextThread);
                okcThreadList.add(nextThread);
             }
@@ -79,16 +80,16 @@ class OkcForumFeed {
          }
          progressDialog.setProgress(p++);
          
-         Debug.println("\n--- ALL THREADS (SORTED) after " + lastUpdated + " ---");
+         Debug.println("\n--- ALL THREADS (SORTED) after " + lastUpdated + " ---", Debug.VERBOSE);
          Collections.sort(okcThreadList, OkcThread.OKC_THREAD_DATE_COMPARATOR);
          result = new ArrayList<OkcThread>(okcThreadList.size());
          for (OkcThread nextThread : okcThreadList) {
             if (!isAfterLastUpdated(nextThread.getTdate_d(), lastUpdated)) {
-               Debug.println("...");
+               Debug.println("...", Debug.VERBOSE);
                continue;
             }
             result.add(nextThread);
-            Debug.println(nextThread);
+            Debug.println(nextThread, Debug.VERBOSE);
          }
          progressDialog.setProgress(p++);
          
@@ -181,7 +182,8 @@ class OkcForumFeed {
       return httpScanner;
    }
 
-   private static Date getLastUpdated() {
+   // 12 hours ago
+   private static Date getDefaultLastUpdated() {
       Date lastUpdated = new Date();
       Calendar cal = Calendar.getInstance();
       cal.setTime(lastUpdated);

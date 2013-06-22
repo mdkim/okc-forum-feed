@@ -14,8 +14,10 @@ import java.text.DateFormat;
 
 import com.norbu.okcforumfeed.OkcException;
 
-class OkcSection {
+class OkcSection implements java.io.Serializable {
 
+   private static final long serialVersionUID = 1L;
+   
    private Date connectionDate;
    private List<OkcThread> okcThreadList = null;
 
@@ -135,5 +137,8 @@ class OkcSection {
    }
    private void setSdate_d(Date sdate_s) {
       this.sdate_d = sdate_s;
+   }
+   public Date getConnectionDate() {
+      return this.connectionDate;
    }
 }
