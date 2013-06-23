@@ -96,6 +96,7 @@ public class MainActivity extends Activity {
       progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
       progressDialog.setIndeterminate(false);
       progressDialog.setMax(20);
+      progressDialog.setProgress(1);
       return progressDialog;
    }
 
