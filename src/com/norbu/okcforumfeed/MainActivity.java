@@ -31,6 +31,7 @@ import android.widget.TextView;
 public class MainActivity extends Activity {
 
    public static Typeface tf_roboto_bc, tf_roboto;
+   private static final String URL_ABOUT = "https://github.com/mdkim/okc-forum-feed";
    private static final String CACHE_THREADARRAYADAPTER_FILE = "okc.taa.cache";
    private OkcDownloadTask okcDownloadTask;
    // fields used by OkcDownloadTask->OkcForumFeed
@@ -141,6 +142,9 @@ public class MainActivity extends Activity {
            this.textView.setText(getString(R.string.textView1));
            this.clearCache();
            return true;
+       case R.id.action_about:
+           this.openAboutInBrowser();
+           return true;
        case R.id.action_settings:
            // not implemented
            return true;
@@ -149,6 +153,14 @@ public class MainActivity extends Activity {
        }
    }
    
+   private void openAboutInBrowser() {
+      String url = URL_ABOUT;
+      
+      Uri uri = Uri.parse(url);
+      Intent browserIntent = new Intent(Intent.ACTION_VIEW, uri);
+      startActivity(browserIntent);
+   }
+
    private void openOkcThreadInBrowser(int i) {
       String url = getOkcThreadUrl(i);
       
